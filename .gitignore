@@ -1,0 +1,18 @@
+# Data (regeneratable, see data/raw/README.md and scripts/)
+data/raw/*.txt
+data/raw/*.txt.gz
+data/processed/*.csv
+
+# Keep directory READMEs and structure
+!data/raw/README.md
+!data/processed/README.md
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+*.egg-info/
+
+# OS
+.DS_Store

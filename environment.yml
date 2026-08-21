@@ -1,0 +1,16 @@
+name: ad-rnaseq-analysis
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - pip
+  - pip:
+      - pydeseq2
+      # Added as later pipeline steps are implemented:
+      # - gseapy       (enrichment analysis)
+      # - matplotlib
+      # - seaborn
+      # - scikit-learn (maybe later extension)
