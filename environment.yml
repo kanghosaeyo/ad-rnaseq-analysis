@@ -6,11 +6,10 @@ dependencies:
   - python=3.11
   - pandas
   - numpy
+  - matplotlib
+  - seaborn
+  - scikit-learn
   - pip
   - pip:
       - pydeseq2
-      # Added as later pipeline steps are implemented:
-      # - gseapy       (enrichment analysis)
-      # - matplotlib
-      # - seaborn
-      # - scikit-learn (maybe later extension)
+      - gseapy
