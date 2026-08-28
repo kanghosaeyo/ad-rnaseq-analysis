@@ -36,11 +36,13 @@ def parse_sample_name(sample_name: str) -> dict:
     """
     parts = sample_name.split("_")
     group = parts[0]  # AD, CTRL, or PSO
-    patient_id = parts[1]
+    patient_number = parts[1]
+    patient_id = f"{group}_{patient_number}"
     condition = "_".join(parts[2:])  # handles 'non-lesional', 'chronic_lesion', etc.
     return {
         "sample_id": sample_name,
         "group": group,
+        "patient_number": patient_number,
         "patient_id": patient_id,
         "condition": condition,
     }
@@ -61,7 +63,7 @@ def apply_inclusion_filter(meta: pd.DataFrame) -> pd.DataFrame:
     is_ctrl = meta["group"] == "CTRL"
     is_clean_ad = (
         (meta["group"] == "AD")
-        & (~meta["patient_id"].isin(CHRONIC_SUBSTUDY_PATIENTS))
+        & (~meta["patient_number"].isin(CHRONIC_SUBSTUDY_PATIENTS))
         & (meta["condition"].isin(["lesional", "non-lesional"]))
     )
     return meta[is_ctrl | is_clean_ad].reset_index(drop=True)
