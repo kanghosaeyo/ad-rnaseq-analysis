@@ -1,21 +1,11 @@
 """
-QC and PCA on the curated AD/CTRL cohort.
+Quality control and exploratory analysis on the curated cohort.
 
-Steps:
-  1. Library size check across the 80 curated samples.
-  2. Drop gene symbols known to be corrupted by Excel's date
-     auto-formatting. These collide under identical symbols with no way
-     to recover which original gene each row belongs to, and pydeseq2
-     requires unique gene identifiers.
-  3. Filter low-count genes.
-  4. Normalize (DESeq2 size factors) and variance-stabilize (VST).
-  5. Run PCA, plot colored by condition, flag samples that sit far from
-     their group's centroid for manual review.
-
-Outputs:
-  results/tables/library_size_qc.csv
-  results/tables/pca_coordinates.csv
-  results/figures/pca_plot.png
+Checks sequencing depth per sample, removes any gene identifiers known to
+be unreliable, filters out low-signal genes, and normalizes the count
+matrix. Runs PCA to visualize overall sample similarity and flags samples
+that fall unusually far from their expected group, so they can be
+reviewed before downstream statistical testing.
 """
 
 from pathlib import Path

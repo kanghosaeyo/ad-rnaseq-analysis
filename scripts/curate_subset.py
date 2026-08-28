@@ -1,16 +1,11 @@
 """
-Parse GSE121212 sample headers into a clean metadata table,
-and subset the count matrix to the homogeneous AD/CTRL cohort.
+Parse raw sample column headers into a structured metadata table, and
+subset the raw count matrix down to a clean, homogeneous cohort.
 
-Excludes:
-  - All PSO_* columns (psoriasis cohort, not needed for this analysis)
-  - AD_032 through AD_037 (the acute/chronic sub-study cohort — a
-    methodologically distinct protocol from the main lesional/non-lesional
-    design; see project notes for why these are excluded)
-
-Keeps:
-  - AD_004 through AD_031: paired lesional / non-lesional samples (21 patients)
-  - CTRL_*_healthy: all 38 healthy control samples
+Applies inclusion/exclusion rules to remove sample groups that don't
+belong in this analysis, and validates that the remaining samples form a
+consistent design (e.g. correct pairing across conditions) before saving
+the cleaned metadata and count matrix for downstream steps.
 """
 
 from pathlib import Path
