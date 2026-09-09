@@ -1,0 +1,24 @@
+Assuming unrestricted shared filesystem usage.
+
+SNAKEMAKE
+=========
+  Date: 2026-09-07 18:47:08
+  Workflow ID: d50649a5-5d10-434d-a5b6-66011b29f6a0
+  Platform: macOS-26.2-arm64-arm-64bit
+  Host: Kanghos-MacBook-Air.local
+  User: kanghoji
+  Snakemake version: 9.26.1
+  Python version: 3.11.16 | packaged by conda-forge | (main, Aug 21 2026, 22:39:01) [Clang 19.1.7 ]
+  Command: /opt/miniconda3/envs/ad-rnaseq-analysis/bin/snakemake --cores 1
+  Snakefile: /Users/kanghoji/Desktop/ad-rnaseq-analysis/Snakefile
+  Base directory: /Users/kanghoji/Desktop/ad-rnaseq-analysis
+  Run directory: /Users/kanghoji/Desktop/ad-rnaseq-analysis
+  Working directory: /Users/kanghoji/Desktop/ad-rnaseq-analysis
+  Config file(s): []
+  Config MD5: 99914b932bd37a50b983c5e7c90ae93b
+
+Building DAG of jobs...
+LockException:
+Error: Directory cannot be locked. Please make sure that no other Snakemake process is trying to create the same files in the following directory:
+/Users/kanghoji/Desktop/ad-rnaseq-analysis
+If you are sure that no other instances of snakemake are running on this directory, the remaining lock was likely caused by a kill signal or a power loss. It can be removed with the --unlock argument.

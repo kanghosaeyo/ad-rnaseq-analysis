@@ -1,0 +1,104 @@
+Assuming unrestricted shared filesystem usage.
+
+SNAKEMAKE
+=========
+  Date: 2026-09-07 18:39:18
+  Workflow ID: 3c98f3b7-9ac7-4234-9315-e727daa211c4
+  Platform: macOS-26.2-arm64-arm-64bit
+  Host: Kanghos-MacBook-Air.local
+  User: kanghoji
+  Snakemake version: 9.26.1
+  Python version: 3.11.16 | packaged by conda-forge | (main, Aug 21 2026, 22:39:01) [Clang 19.1.7 ]
+  Command: /opt/miniconda3/envs/ad-rnaseq-analysis/bin/snakemake --cores 1
+  Snakefile: /Users/kanghoji/Desktop/ad-rnaseq-analysis/Snakefile
+  Base directory: /Users/kanghoji/Desktop/ad-rnaseq-analysis
+  Run directory: /Users/kanghoji/Desktop/ad-rnaseq-analysis
+  Working directory: /Users/kanghoji/Desktop/ad-rnaseq-analysis
+  Config file(s): []
+  Config MD5: 99914b932bd37a50b983c5e7c90ae93b
+
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                        count
+-----------------------  -------
+curate_subset                  1
+differential_expression        1
+qc_pca                         1
+secondary_comparison           1
+enrichment_analysis            1
+visualize_results              1
+all                            1
+total                          7
+
+Select jobs to execute...
+Execute 1 jobs...
+[Mon Sep  7 18:39:21 2026]
+localrule curate_subset:
+    input: data/raw/GSE121212_readcount.txt, scripts/curate_subset.py
+    output: data/processed/metadata.csv, data/processed/counts_subset.csv
+    jobid: 2
+    reason: Missing output files: data/processed/counts_subset.csv, data/processed/metadata.csv
+    resources: tmpdir=/var/folders/zc/bh23g04j0pg9x5h95_lrn8l00000gn/T
+[Mon Sep  7 18:39:22 2026]
+Finished jobid: 2 (Rule: curate_subset)
+1 of 7 steps (14%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Mon Sep  7 18:39:22 2026]
+localrule secondary_comparison:
+    input: data/processed/metadata.csv, data/processed/counts_subset.csv, scripts/secondary_comparison.py
+    output: results/tables/de_nonlesional_vs_healthy.csv, results/figures/volcano_nonlesional_vs_healthy.png, results/tables/de_lesional_vs_nonlesional.csv, results/figures/volcano_lesional_vs_nonlesional.png
+    jobid: 4
+    reason: Missing output files: results/figures/volcano_lesional_vs_nonlesional.png, results/tables/de_nonlesional_vs_healthy.csv, results/figures/volcano_nonlesional_vs_healthy.png, results/tables/de_lesional_vs_nonlesional.csv; Input files updated by another job: data/processed/counts_subset.csv, data/processed/metadata.csv
+    resources: tmpdir=/var/folders/zc/bh23g04j0pg9x5h95_lrn8l00000gn/T
+Select jobs to execute...
+[Mon Sep  7 18:39:55 2026]
+Finished jobid: 4 (Rule: secondary_comparison)
+2 of 7 steps (29%) done
+Execute 1 jobs...
+[Mon Sep  7 18:39:56 2026]
+localrule qc_pca:
+    input: data/processed/metadata.csv, data/processed/counts_subset.csv, scripts/qc_pca.py
+    output: results/tables/library_size_qc.csv, results/tables/pca_coordinates.csv, results/figures/pca_plot.png
+    jobid: 1
+    reason: Missing output files: results/tables/library_size_qc.csv, results/figures/pca_plot.png, results/tables/pca_coordinates.csv; Input files updated by another job: data/processed/counts_subset.csv, data/processed/metadata.csv
+    resources: tmpdir=/var/folders/zc/bh23g04j0pg9x5h95_lrn8l00000gn/T
+Select jobs to execute...
+[Mon Sep  7 18:40:08 2026]
+Finished jobid: 1 (Rule: qc_pca)
+3 of 7 steps (43%) done
+Execute 1 jobs...
+[Mon Sep  7 18:40:08 2026]
+localrule differential_expression:
+    input: data/processed/metadata.csv, data/processed/counts_subset.csv, scripts/differential_expression.py
+    output: results/tables/de_lesional_vs_healthy.csv, results/figures/volcano_lesional_vs_healthy.png, results/figures/ma_lesional_vs_healthy.png
+    jobid: 3
+    reason: Missing output files: results/tables/de_lesional_vs_healthy.csv, results/figures/ma_lesional_vs_healthy.png, results/figures/volcano_lesional_vs_healthy.png; Input files updated by another job: data/processed/counts_subset.csv, data/processed/metadata.csv
+    resources: tmpdir=/var/folders/zc/bh23g04j0pg9x5h95_lrn8l00000gn/T
+[Mon Sep  7 18:40:24 2026]
+Finished jobid: 3 (Rule: differential_expression)
+4 of 7 steps (57%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Mon Sep  7 18:40:24 2026]
+localrule visualize_results:
+    input: data/processed/metadata.csv, data/processed/counts_subset.csv, results/tables/de_lesional_vs_healthy.csv, scripts/visualize_results.py
+    output: results/figures/heatmap_curated_panel.png, results/figures/boxplots_standout_genes.png
+    jobid: 5
+    reason: Missing output files: results/figures/heatmap_curated_panel.png, results/figures/boxplots_standout_genes.png; Input files updated by another job: data/processed/counts_subset.csv, results/tables/de_lesional_vs_healthy.csv, data/processed/metadata.csv
+    resources: tmpdir=/var/folders/zc/bh23g04j0pg9x5h95_lrn8l00000gn/T
+Select jobs to execute...
+[Mon Sep  7 18:40:40 2026]
+Finished jobid: 5 (Rule: visualize_results)
+5 of 7 steps (71%) done
+Execute 1 jobs...
+[Mon Sep  7 18:40:41 2026]
+localrule enrichment_analysis:
+    input: results/tables/de_lesional_vs_healthy.csv, results/tables/de_nonlesional_vs_healthy.csv, results/tables/de_lesional_vs_nonlesional.csv, scripts/enrichment_analysis.py
+    output: results/.enrichment_done
+    jobid: 6
+    reason: Missing output files: results/.enrichment_done; Input files updated by another job: results/tables/de_lesional_vs_healthy.csv, results/tables/de_lesional_vs_nonlesional.csv, results/tables/de_nonlesional_vs_healthy.csv
+    resources: tmpdir=/var/folders/zc/bh23g04j0pg9x5h95_lrn8l00000gn/T
