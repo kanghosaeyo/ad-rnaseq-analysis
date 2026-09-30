@@ -88,11 +88,20 @@ def plot_top_terms(results: pd.DataFrame, comparison_name: str, library: str, ou
     plt.figure(figsize=(8, max(3, 0.35 * len(top))))
     plt.barh(top["Term"], top["NES"], color=colors)
     plt.axvline(0, color="black", linewidth=0.5)
-    plt.xlabel("Normalized Enrichment Score (NES)")
-    plt.title(f"Top enriched terms: {comparison_name} ({library})")
+    plt.xlabel("Normalized Enrichment Score (NES); positive = up in first group")
+    plt.title(f"Top enriched terms: {comparison_name} ({library})\n"
+              f"top {len(top)} of {len(sig)} significant terms (FDR < 0.05, "
+              f"{len(results)} tested), ranked by |NES|", fontsize=10)
+    plt.legend(
+        [plt.Rectangle((0, 0), 1, 1, color="crimson"),
+         plt.Rectangle((0, 0), 1, 1, color="steelblue")],
+        ["barrier/immune-related term", "other term"],
+        loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=2,
+        fontsize=8, frameon=False,
+    )
     plt.tight_layout()
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_path, dpi=150)
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
     print(f"Saved plot -> {out_path}")
     plt.close()
 

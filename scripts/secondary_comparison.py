@@ -65,11 +65,17 @@ def plot_volcano(results: pd.DataFrame, title: str, x_label: str, out_path: Path
     plt.figure(figsize=(7, 6))
     not_sig = results[~results["significant"]]
     sig = results[results["significant"]]
+    up = sig[sig["log2FoldChange"] > 0]
+    down = sig[sig["log2FoldChange"] < 0]
+    # x_label looks like "log2 fold change (A vs. B)"; A is the numerator group
+    numerator = x_label.split("(")[-1].split(" vs.")[0]
 
     plt.scatter(not_sig["log2FoldChange"], -np.log10(not_sig["padj"]),
-                s=8, alpha=0.3, color="gray", label="not significant")
-    plt.scatter(sig["log2FoldChange"], -np.log10(sig["padj"]),
-                s=10, alpha=0.6, color="crimson", label="significant")
+                s=8, alpha=0.3, color="gray", label=f"not significant (n={len(not_sig):,})")
+    plt.scatter(up["log2FoldChange"], -np.log10(up["padj"]),
+                s=10, alpha=0.6, color="crimson", label=f"up in {numerator} (n={len(up):,})")
+    plt.scatter(down["log2FoldChange"], -np.log10(down["padj"]),
+                s=10, alpha=0.6, color="steelblue", label=f"down in {numerator} (n={len(down):,})")
     plt.axhline(-np.log10(PADJ_THRESHOLD), color="black", linestyle="--", linewidth=0.5)
     plt.axvline(LFC_THRESHOLD, color="black", linestyle="--", linewidth=0.5)
     plt.axvline(-LFC_THRESHOLD, color="black", linestyle="--", linewidth=0.5)
@@ -81,11 +87,13 @@ def plot_volcano(results: pd.DataFrame, title: str, x_label: str, out_path: Path
 
     plt.xlabel(x_label)
     plt.ylabel("-log10(adjusted p-value)")
-    plt.title(title)
-    plt.legend()
+    plt.title(f"{title}\n(significant: padj < {PADJ_THRESHOLD}, |log2FC| > {LFC_THRESHOLD:g}; "
+              f"{len(results):,} genes tested)", fontsize=10)
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=3,
+               fontsize=8, frameon=False)
     plt.tight_layout()
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_path, dpi=150)
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
     print(f"Saved volcano plot -> {out_path}")
     plt.close()
 

@@ -66,14 +66,20 @@ def plot_volcano(results: pd.DataFrame):
     plt.figure(figsize=(7, 6))
     not_sig = results[~results["significant"]]
     sig = results[results["significant"]]
+    up = sig[sig["log2FoldChange"] > 0]
+    down = sig[sig["log2FoldChange"] < 0]
 
     plt.scatter(
         not_sig["log2FoldChange"], -np.log10(not_sig["padj"]),
-        s=8, alpha=0.3, color="gray", label="not significant",
+        s=8, alpha=0.3, color="gray", label=f"not significant (n={len(not_sig):,})",
     )
     plt.scatter(
-        sig["log2FoldChange"], -np.log10(sig["padj"]),
-        s=10, alpha=0.6, color="crimson", label="significant",
+        up["log2FoldChange"], -np.log10(up["padj"]),
+        s=10, alpha=0.6, color="crimson", label=f"up in lesional (n={len(up):,})",
+    )
+    plt.scatter(
+        down["log2FoldChange"], -np.log10(down["padj"]),
+        s=10, alpha=0.6, color="steelblue", label=f"down in lesional (n={len(down):,})",
     )
     plt.axhline(-np.log10(PADJ_THRESHOLD), color="black", linestyle="--", linewidth=0.5)
     plt.axvline(LFC_THRESHOLD, color="black", linestyle="--", linewidth=0.5)
@@ -88,11 +94,14 @@ def plot_volcano(results: pd.DataFrame):
 
     plt.xlabel("log2 fold change (lesional vs. healthy)")
     plt.ylabel("-log10(adjusted p-value)")
-    plt.title("Differential expression: AD lesional vs. healthy skin")
-    plt.legend()
+    plt.title("Differential expression: AD lesional vs. healthy skin\n"
+              f"(significant: padj < {PADJ_THRESHOLD}, |log2FC| > {LFC_THRESHOLD:g}; "
+              f"{len(results):,} genes tested)", fontsize=10)
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=3,
+               fontsize=8, frameon=False)
     plt.tight_layout()
     OUT_VOLCANO.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(OUT_VOLCANO, dpi=150)
+    plt.savefig(OUT_VOLCANO, dpi=150, bbox_inches="tight")
     print(f"Saved volcano plot -> {OUT_VOLCANO}")
     plt.close()
 
@@ -104,20 +113,24 @@ def plot_ma(results: pd.DataFrame):
 
     plt.scatter(
         np.log10(not_sig["baseMean"] + 1), not_sig["log2FoldChange"],
-        s=8, alpha=0.3, color="gray", label="not significant",
+        s=8, alpha=0.3, color="gray", label=f"not significant (n={len(not_sig):,})",
     )
     plt.scatter(
         np.log10(sig["baseMean"] + 1), sig["log2FoldChange"],
-        s=10, alpha=0.6, color="crimson", label="significant",
+        s=10, alpha=0.6, color="crimson", label=f"significant (n={len(sig):,})",
     )
     plt.axhline(0, color="black", linewidth=0.5)
+    plt.axhline(LFC_THRESHOLD, color="black", linestyle="--", linewidth=0.5)
+    plt.axhline(-LFC_THRESHOLD, color="black", linestyle="--", linewidth=0.5)
     plt.xlabel("log10(mean expression + 1)")
     plt.ylabel("log2 fold change (lesional vs. healthy)")
-    plt.title("MA plot: AD lesional vs. healthy skin")
-    plt.legend()
+    plt.title("MA plot: AD lesional vs. healthy skin\n"
+              f"(significant: padj < {PADJ_THRESHOLD}, |log2FC| > {LFC_THRESHOLD:g})",
+              fontsize=10)
+    plt.legend(loc="lower right", fontsize=8)
     plt.tight_layout()
     OUT_MA.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(OUT_MA, dpi=150)
+    plt.savefig(OUT_MA, dpi=150, bbox_inches="tight")
     print(f"Saved MA plot -> {OUT_MA}")
     plt.close()
 

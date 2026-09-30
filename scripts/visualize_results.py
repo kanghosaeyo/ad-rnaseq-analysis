@@ -86,27 +86,48 @@ def plot_heatmap(vst: pd.DataFrame, meta: pd.DataFrame, genes: list):
 
     col_colors = meta.loc[sample_order, "condition"].map(CONDITION_COLORS)
 
+    # Row annotation: which curated category each gene came from
+    def gene_category(gene):
+        if gene in NAMED_BARRIER_GENES:
+            return "barrier marker"
+        if gene in NAMED_IMMUNE_GENES:
+            return "immune marker"
+        return "top DE gene"
+    row_cat_colors = {"barrier marker": "#8172B2", "immune marker": "#DD8452", "top DE gene": "#BBBBBB"}
+    row_colors = pd.Series({g: row_cat_colors[gene_category(g)] for g in panel_z.index})
+
     g = sns.clustermap(
         panel_z, col_cluster=False, row_cluster=True,
-        col_colors=col_colors, cmap="vlag", center=0,
+        col_colors=col_colors, row_colors=row_colors, cmap="vlag", center=0,
         figsize=(12, 8), xticklabels=False,
         cbar_kws={"label": "z-score (VST expression)"},
     )
     g.ax_heatmap.set_ylabel("")
     g.ax_heatmap.set_xlabel(f"Samples (n={len(sample_order)}, grouped by condition)")
+    g.fig.suptitle(f"Curated gene panel ({len(genes)} genes): expression across conditions", y=1.0)
 
+    n_per = meta["condition"].value_counts()
     handles = [plt.Rectangle((0, 0), 1, 1, color=CONDITION_COLORS[c]) for c in CONDITION_ORDER]
-    g.ax_heatmap.legend(handles, CONDITION_ORDER, title="Condition",
-                         bbox_to_anchor=(1.15, 1), loc="upper left", frameon=False)
+    labels = [f"{c} (n={n_per[c]})" for c in CONDITION_ORDER]
+    cond_legend = g.ax_heatmap.legend(handles, labels, title="Condition",
+                                       bbox_to_anchor=(1.08, 1), loc="upper left", frameon=False)
+    g.ax_heatmap.add_artist(cond_legend)
+    cat_handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in row_cat_colors.values()]
+    cat_legend = g.ax_heatmap.legend(cat_handles, list(row_cat_colors), title="Gene category",
+                        bbox_to_anchor=(1.08, 0.75), loc="upper left", frameon=False)
 
     OUT_HEATMAP.parent.mkdir(parents=True, exist_ok=True)
-    g.savefig(OUT_HEATMAP, dpi=150)
+    g.savefig(OUT_HEATMAP, dpi=150, bbox_inches="tight",
+              bbox_extra_artists=[cond_legend, cat_legend])
     print(f"Saved heatmap -> {OUT_HEATMAP}")
     plt.close()
 
 
 def plot_boxplots(vst: pd.DataFrame, meta: pd.DataFrame, genes: list):
     genes = [g for g in genes if g in vst.columns]
+    de = pd.read_csv(DE_PATH, index_col=0)
+    n_per = meta["condition"].value_counts()
+    tick_labels = [f"{c}\n(n={n_per[c]})" for c in CONDITION_ORDER]
     fig, axes = plt.subplots(1, len(genes), figsize=(4 * len(genes), 4))
     if len(genes) == 1:
         axes = [axes]
@@ -124,13 +145,19 @@ def plot_boxplots(vst: pd.DataFrame, meta: pd.DataFrame, genes: list):
             data=df, x="condition", y="expression", order=CONDITION_ORDER,
             color="black", size=3, alpha=0.5, ax=ax,
         )
-        ax.set_title(gene)
+        row = de.loc[gene]
+        padj = row["padj"]
+        ax.set_title(f"{gene}\nlesional vs. healthy: log2FC={row['log2FoldChange']:+.2f}, "
+                     f"padj={padj:.1e}", fontsize=9)
+        ax.set_xticks(range(len(CONDITION_ORDER)), tick_labels)
         ax.set_xlabel("")
         ax.set_ylabel("VST expression" if ax is axes[0] else "")
 
+    fig.suptitle("Standout genes: VST expression by condition "
+                 "(box = median/IQR, points = individual samples)", y=1.02)
     plt.tight_layout()
     OUT_BOXPLOTS.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(OUT_BOXPLOTS, dpi=150)
+    plt.savefig(OUT_BOXPLOTS, dpi=150, bbox_inches="tight")
     print(f"Saved boxplots -> {OUT_BOXPLOTS}")
     plt.close()
 

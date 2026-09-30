@@ -32,7 +32,8 @@ EXCEL_CORRUPTED_GENE_SYMBOLS = ["1-Mar", "2-Mar"]
 
 MIN_TOTAL_COUNT = 10          # gene-level filter: min summed counts across samples
 LOW_LIBRARY_FRACTION = 0.3    # flag samples below this fraction of the median library size
-PCA_OUTLIER_SD = 2.0          # flag samples beyond this many SDs from their group centroid
+CONDITION_COLORS = {"healthy": "#4C9F70", "non-lesional": "#E8A33D", "lesional": "#C44E52"}
+PCA_OUTLIER_SD = 2.0         # flag samples beyond this many SDs from their group centroid
 
 
 def load_data():
@@ -98,7 +99,8 @@ def run_pca(vst_counts: np.ndarray, meta: pd.DataFrame) -> pd.DataFrame:
     return pca_df, var_explained
 
 
-def flag_pca_outliers(pca_df: pd.DataFrame):
+def flag_pca_outliers(pca_df: pd.DataFrame) -> list:
+    flagged = []
     for condition, group in pca_df.groupby("condition"):
         centroid = group[["PC1", "PC2"]].mean()
         dists = np.sqrt(((group[["PC1", "PC2"]] - centroid) ** 2).sum(axis=1))
@@ -106,20 +108,35 @@ def flag_pca_outliers(pca_df: pd.DataFrame):
         outliers = group.index[dists > threshold].tolist()
         if outliers:
             print(f"WARNING: potential PCA outlier(s) in '{condition}' group: {outliers}")
+            flagged += outliers
+    return flagged
 
 
-def plot_pca(pca_df: pd.DataFrame, var_explained: np.ndarray):
+def plot_pca(pca_df: pd.DataFrame, var_explained: np.ndarray, outliers: list):
     plt.figure(figsize=(7, 6))
+    order = ["healthy", "non-lesional", "lesional"]
+    pca_df = pca_df.copy()
+    n_per = pca_df["condition"].value_counts()
+    # put sample counts in the legend labels
+    pca_df["label"] = pca_df["condition"].map(lambda c: f"{c} (n={n_per[c]})")
+    label_order = [f"{c} (n={n_per[c]})" for c in order]
     sns.scatterplot(
-        data=pca_df, x="PC1", y="PC2", hue="condition",
-        style="condition", s=80, alpha=0.85,
+        data=pca_df, x="PC1", y="PC2", hue="label", style="label",
+        hue_order=label_order, style_order=label_order,
+        palette=dict(zip(label_order, [CONDITION_COLORS[c] for c in order])),
+        s=80, alpha=0.85,
     )
+    for sample in outliers:
+        plt.annotate(sample, (pca_df.at[sample, "PC1"], pca_df.at[sample, "PC2"]),
+                     fontsize=8, xytext=(4, 4), textcoords="offset points")
+    plt.legend(title="Condition", fontsize=8)
     plt.xlabel(f"PC1 ({var_explained[0]:.1%} variance)")
     plt.ylabel(f"PC2 ({var_explained[1]:.1%} variance)")
-    plt.title("PCA of VST-normalized expression: AD lesional / non-lesional / healthy")
+    plt.title("PCA of VST-normalized expression: AD lesional / non-lesional / healthy\n"
+              "(labeled points: flagged outliers, >2 SD from group centroid)", fontsize=10)
     plt.tight_layout()
     OUT_PCA_FIGURE.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(OUT_PCA_FIGURE, dpi=150)
+    plt.savefig(OUT_PCA_FIGURE, dpi=150, bbox_inches="tight")
     print(f"Saved PCA plot -> {OUT_PCA_FIGURE}")
 
 
@@ -138,12 +155,12 @@ def main():
     vst_counts = normalize_and_vst(counts, meta)
     pca_df, var_explained = run_pca(vst_counts, meta)
 
-    flag_pca_outliers(pca_df)
+    outliers = flag_pca_outliers(pca_df)
 
     pca_df.to_csv(OUT_PCA_TABLE)
     print(f"Saved PCA coordinates -> {OUT_PCA_TABLE}")
 
-    plot_pca(pca_df, var_explained)
+    plot_pca(pca_df, var_explained, outliers)
 
 
 if __name__ == "__main__":
